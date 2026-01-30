@@ -1,0 +1,61 @@
+Excel File: Alamrs and Status Conditions for New Dashboard.xlsx
+========================================================================================================================
+
+Row  1:                           | Alarms and Status Conditi |                           |                           |                           |                          
+Row  3:                           | Component                 | Parameter                 | Condition                 | Condition                 | Unit Value               
+Row  4:                           | Fuel Sensor               | Fuel Low                  | When Fuel Level is <=     | 10                        | cm                       
+Row  5:                           | Fuel Sensor               | Fuel Drop                 | When Fuel Level Drop more | 10                        | L                        
+Row  6:                           | Fuel Sensor               | Refuel                    | When there is increase in | 20                        | L                        
+Row  7:                           | Grid ACEM                 | Grid Available            | When one or more phase vo | 174                       | V                        
+Row  8:                           | Grid ACEM                 | Grid Not Available        | When All phase voltages < | 174                       | V                        
+Row  9:                           | Grid ACEM                 | Grid  Low  Phase Voltage  | When one or two phase vol | 174                       | V                        
+Row 11:                           | Grid ACEM                 | Grid Available and on Loa | When one or more phase vo | 174                       | V                        
+Row 12:                           |                           |                           |                           | 3                         | A                        
+Row 13:                           | Grid ACEM                 | Grid Available But Not on | When one or more phase vo | 174                       | V                        
+Row 14:                           |                           |                           |                           | 3                         | A                        
+Row 15:                           | Grid ACEM                 | Grid High Frequency       | When Grid Frequency >     | 55                        | Hz                       
+Row 16:                           | Grid ACEM                 | Grid Low Frequency        | When Grid Frequency < and | 45                        | Hz                       
+Row 17:                           | Battery                   | Battery Discharge         | When Battery Current is < | -3                        | A                        
+Row 18:                           | Battery                   | Battery Charge            | When Battery Current is > | 3                         | A                        
+Row 19:                           | Battery                   | Battery Floating          | When -3 <= Battery Curren | 3                         | A                        
+Row 20:                           | Battery                   | Battery Low               | When Battery Voltage <=   | 46                        | V                        
+Row 21:                           | Solar                     | Solar On                  | Solar Current >=          | 5                         | A                        
+Row 22:                           | Solar                     | Solar Off                 | Solar Current <           | 5                         | A                        
+Row 23:                           | Gen ACEM                  | Gen On                    | When one or more phase vo | 174                       | V                        
+Row 24:                           | Gen ACEM                  | Gen Off                   | When All phase voltages < | 174                       | V                        
+Row 25:                           | Gen ACEM                  | Gen  Low  Phase Voltage   | When one or more phase vo | 174                       | V                        
+Row 26:                           |                           |                           |                           |                           | V                        
+Row 27:                           | Gen ACEM                  | Gen on Load               | When one or more phase vo | 174                       | V                        
+Row 28:                           |                           |                           |                           | 3                         | A                        
+Row 29:                           | Gen ACEM                  | Gen On but Not on Load    | When one or more phase vo | 174                       | V                        
+Row 30:                           |                           |                           |                           | 3                         | A                        
+Row 31:                           | Gen ACEM                  | Gen High Frequency        | When Grid Frequency > 55  | 55                        | Hz                       
+Row 32:                           | Gen ACEM                  | Gen Low Frequency         | When Grid Frequency < 45  | 45                        | HZ                       
+Row 33:                           | Temperatur e Sensor       | High Temperature          | When temperature > 30 Deg | 30                        | °c                       
+Row 34:                           | Power Alarms              | Site Down                 | Rectifier with No Power   |                           | KW                       
+Row 35:                           | Power Status              | Site on Grid              | Grid Power >              | 0.6                       | KW                       
+Row 36:                           |                           |                           | Battery Power =           |                           | KW                       
+Row 37:                           |                           |                           | Generator Power =         |                           | KW                       
+Row 38:                           |                           |                           | Solar Power =             |                           | KW                       
+Row 39:                           | Power Status              | Site on Battery           | Grid Power >              |                           | KW                       
+Row 40:                           |                           |                           | Battery Power =           |                           | KW                       
+Row 41:                           |                           |                           | Generator Power =         |                           | KW                       
+Row 42:                           |                           |                           | Solar Power >=            | 0.6                       | KW                       
+Row 43:                           | Power Status              | Site on Generator         | Grid Power >              |                           | KW                       
+Row 44:                           |                           |                           | Battery Power =           |                           | KW                       
+Row 45:                           |                           |                           | Generator Power >=        | 0.6                       | KW                       
+Row 46:                           |                           |                           | Solar Power =             |                           | KW                       
+Row 47:                           | Power Status              | Site on Solar with Grid   | Grid Power >=             | 0.6                       | KW                       
+Row 48:                           |                           |                           | Battery Power =           |                           | KW                       
+Row 49:                           |                           |                           | Generator Power =         |                           | KW                       
+Row 50:                           |                           |                           | Solar Power >=            | 0.6                       | KW                       
+Row 51:                           | Power Status              | Site on Solar with Batter | Grid Power =              |                           | KW                       
+Row 52:                           |                           |                           | Battery Power >=          | 0.6                       | KW                       
+Row 53:                           |                           |                           | Generator Power =         |                           | KW                       
+Row 54:                           |                           |                           | Solar Power >=            | 0.6                       | KW                       
+Row 55:                           | Power Status              | Site on Solar with Genera | Grid Power =              |                           | KW                       
+Row 56:                           |                           |                           | Battery Power =           |                           | KW                       
+Row 57:                           |                           |                           | Generator Power >=        | 0.6                       | KW                       
+Row 58:                           |                           |                           | Solar Power >=            | 0.6                       | KW                       
+Row 59:                           | Tenant                    | Tenant Down               | Tenant Consumption Averag | 50                        | %                        
+Row 60:                           | Tenant                    | Load Increase             | Tenant Consumption Last 3 | 115                       | %                        

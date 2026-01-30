@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+apscheduler
+aiosqlite
+python-dotenv
+requests
+schedule
