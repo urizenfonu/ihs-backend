@@ -70,6 +70,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[Lifespan] ⚠️  Failed to fix alarm precision: {e}", flush=True)
 
+    # Run one-time cleanup of corrupted energy mix data
+    try:
+        print("[Lifespan] Running energy mix data cleanup...", flush=True)
+        from scripts.cleanup_energy_mix_data import cleanup_energy_mix_data
+        cleanup_energy_mix_data()
+        print("[Lifespan] ✅ Energy mix cleanup completed", flush=True)
+    except Exception as e:
+        print(f"[Lifespan] ⚠️  Failed to cleanup energy mix data: {e}", flush=True)
+
     # Run initial backfill of energy mix data
     try:
         print("[Lifespan] Running initial energy mix data backfill...", flush=True)
