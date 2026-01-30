@@ -63,10 +63,12 @@ def get_historical_energy_mix(hours_back: int = 24) -> List[Dict]:
     # Generate the expected hour keys for the past N hours
     now = datetime.now()
     expected_hours = []
+    hour_objs = []
     for i in range(hours_back - 1, -1, -1):  # Going backwards from now
         hour = now - timedelta(hours=i)
-        hour_key = hour.strftime("%H:00")
+        hour_key = hour.strftime("%Y-%m-%d %H:00")
         expected_hours.append(hour_key)
+        hour_objs.append(hour)
     
     # Query for existing data
     placeholders = ','.join(['?' for _ in expected_hours])
@@ -82,21 +84,24 @@ def get_historical_energy_mix(hours_back: int = 24) -> List[Dict]:
     
     # Convert to list of dicts
     stored_data = {row['hour_key']: {
-        'time': row['hour_key'],
         'grid': row['grid'],
         'generator': row['generator'],
         'solar': row['solar'],
         'battery': row['battery']
     } for row in results}
-    
+
     # Fill in missing hours with zeros
     result_list = []
-    for hour_key in expected_hours:
+    for i, hour_key in enumerate(expected_hours):
+        hour_obj = hour_objs[i]
         if hour_key in stored_data:
-            result_list.append(stored_data[hour_key])
+            result_list.append({
+                'time': hour_obj.strftime("%H:00"),
+                **stored_data[hour_key]
+            })
         else:
             result_list.append({
-                'time': hour_key,
+                'time': hour_obj.strftime("%H:00"),
                 'grid': 0.0,
                 'generator': 0.0,
                 'solar': 0.0,

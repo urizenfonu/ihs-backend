@@ -303,7 +303,7 @@ def get_energy_mix(
         if not dt or dt < cutoff:
             continue
 
-        hour_key = dt.strftime("%H:00")
+        hour_key = dt.strftime("%Y-%m-%d %H:00")
         asset_id = int(r.get("asset_id") or 0)
         if asset_id <= 0:
             continue
@@ -315,7 +315,7 @@ def get_energy_mix(
 
     now = datetime.now()
     hours = [now - timedelta(hours=i) for i in range(23, -1, -1)]
-    buckets: Dict[str, Bucket] = {h.strftime("%H:00"): Bucket() for h in hours}
+    buckets: Dict[str, Bucket] = {h.strftime("%Y-%m-%d %H:00"): Bucket() for h in hours}
 
     for (hour_key, _asset_id), payload in latest_by_bucket.items():
         if hour_key not in buckets:
@@ -368,10 +368,10 @@ def get_energy_mix(
 
     result = []
     for h in hours:
-        key = h.strftime("%H:00")
+        key = h.strftime("%Y-%m-%d %H:00")
         b = buckets[key]
         energy_mix_entry = {
-            "time": key,
+            "time": h.strftime("%H:00"),
             "grid": round(b.grid, 2),
             "generator": round(b.generator, 2),
             "solar": round(b.solar, 2),
