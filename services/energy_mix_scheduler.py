@@ -109,12 +109,12 @@ def update_energy_mix_history():
     """Update the energy mix history with current data."""
     try:
         current_mix = calculate_current_energy_mix()
-        hour_key = datetime.now().strftime("%H:00")
-        
+        hour_key = datetime.now().strftime("%Y-%m-%d %H:00")
+
         # Get the total number of sites to store with the data
         from routers.energy_mix import _resolve_site_ids
         site_ids, _ = _resolve_site_ids(region=None, state=None, site=None, sample_size=2000)
-        
+
         store_energy_mix_snapshot(hour_key, current_mix, len(site_ids))
         logger.info(f"Updated energy mix history for {hour_key}: {current_mix}")
     except Exception as e:
@@ -132,15 +132,15 @@ def update_energy_mix_history_hourly():
         # Calculate the data for the previous hour
         from datetime import timedelta
         prev_hour = datetime.now() - timedelta(hours=1)
-        hour_key = prev_hour.strftime("%H:00")
-        
+        hour_key = prev_hour.strftime("%Y-%m-%d %H:00")
+
         # Calculate energy mix for the previous hour specifically
         current_mix = calculate_energy_mix_for_hour(prev_hour)
-        
+
         # Get the total number of sites to store with the data
         from routers.energy_mix import _resolve_site_ids
         site_ids, _ = _resolve_site_ids(region=None, state=None, site=None, sample_size=2000)
-        
+
         store_energy_mix_snapshot(hour_key, current_mix, len(site_ids))
         logger.info(f"Updated energy mix history for previous hour {hour_key}: {current_mix}")
     except Exception as e:
@@ -278,21 +278,22 @@ def backfill_missing_energy_mix_data(days_to_backfill: int = 7):
     now = datetime.now()
     for i in range(days_to_backfill * 24):  # For each hour in the range
         target_hour = now - timedelta(hours=i)
-        hour_key = target_hour.strftime("%H:00")
-        
+        hour_key = target_hour.strftime("%Y-%m-%d %H:00")
+        display_time = target_hour.strftime("%H:00")
+
         # Find if this hour exists in historical data
-        hour_exists = any(item['time'] == hour_key for item in historical_data)
-        
+        hour_exists = any(item['time'] == display_time for item in historical_data)
+
         if not hour_exists:
-            logger.info(f"Backfilling data for {target_hour.strftime('%Y-%m-%d %H:00')}")
+            logger.info(f"Backfilling data for {hour_key}")
             try:
                 # Calculate energy mix for this specific hour
                 mix = calculate_energy_mix_for_hour(target_hour)
-                
+
                 # Get the total number of sites to store with the data
                 from routers.energy_mix import _resolve_site_ids
                 site_ids, _ = _resolve_site_ids(region=None, state=None, site=None, sample_size=2000)
-                
+
                 store_energy_mix_snapshot(hour_key, mix, len(site_ids))
                 logger.info(f"Backfilled data for {hour_key}: {mix}")
             except Exception as e:
