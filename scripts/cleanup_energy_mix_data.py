@@ -7,7 +7,7 @@ from db.client import get_database
 
 logger = logging.getLogger(__name__)
 
-CLEANUP_FLAG_KEY = "energy_mix_cleanup_v1_completed"
+CLEANUP_FLAG_KEY = "energy_mix_cleanup_v2_completed"
 
 def cleanup_energy_mix_data():
     """Clean up corrupted energy mix data from database (runs once)."""
@@ -31,9 +31,25 @@ def cleanup_energy_mix_data():
         )
         result = cursor.fetchone()
 
-        if result and result['value'] == '1':
-            logger.info("Energy mix cleanup already completed, skipping")
+        # Check for corrupted data (TEXT instead of REAL/INTEGER)
+        try:
+            cursor = db.execute("""
+                SELECT COUNT(*) as cnt FROM energy_mix_history
+                WHERE CAST(grid AS TEXT) LIKE '{%'
+                   OR CAST(generator AS TEXT) LIKE '{%'
+                   OR CAST(solar AS TEXT) LIKE '{%'
+                   OR CAST(battery AS TEXT) LIKE '{%'
+            """)
+            corrupted = cursor.fetchone()['cnt']
+        except:
+            corrupted = 1  # Assume corruption if check fails
+
+        if result and result['value'] == '1' and corrupted == 0:
+            logger.info("Energy mix cleanup already completed, no corruption found")
             return True
+
+        if corrupted > 0:
+            logger.warning(f"Found {corrupted} corrupted records with JSON objects")
 
         logger.info("Starting energy mix data cleanup...")
 
