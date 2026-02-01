@@ -3,8 +3,11 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from io import BytesIO
+from datetime import datetime
 from services.report_service import ReportService
 from services.csv_export_service import CSVExportService
+from services.ihs_csv_export_service import IHSCsvExportService
+from services.ihs_client_factory import get_ihs_api_client
 
 router = APIRouter()
 report_service = ReportService()
@@ -79,3 +82,41 @@ def get_report(report_id: str):
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
     return report
+
+@router.get("/export/assets")
+def export_assets():
+    try:
+        ihs_client = get_ihs_api_client()
+        service = IHSCsvExportService(ihs_client)
+        csv_content = service.generate_assets_csv()
+
+        if not csv_content:
+            raise HTTPException(status_code=404, detail="No assets found")
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        return StreamingResponse(
+            BytesIO(csv_content.encode('utf-8')),
+            media_type='text/csv',
+            headers={'Content-Disposition': f'attachment; filename="assets_{timestamp}.csv"'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/export/sites")
+def export_sites():
+    try:
+        ihs_client = get_ihs_api_client()
+        service = IHSCsvExportService(ihs_client)
+        csv_content = service.generate_sites_csv()
+
+        if not csv_content:
+            raise HTTPException(status_code=404, detail="No sites found")
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        return StreamingResponse(
+            BytesIO(csv_content.encode('utf-8')),
+            media_type='text/csv',
+            headers={'Content-Disposition': f'attachment; filename="sites_{timestamp}.csv"'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

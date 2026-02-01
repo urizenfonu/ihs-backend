@@ -112,26 +112,8 @@ def get_historical_energy_mix(hours_back: int = 24) -> List[Dict]:
 
 
 def cleanup_old_records(days_to_keep: int = 30):
-    """Remove records older than the specified number of days."""
-    db = get_database()
-    
-    cutoff_date = (datetime.now() - timedelta(days=days_to_keep)).strftime('%Y-%m-%d')
-    
-    try:
-        cursor = db.execute(
-            "DELETE FROM energy_mix_history WHERE created_at < ?",
-            (cutoff_date,)
-        )
-        deleted_count = cursor.rowcount
-        db.commit()
-        
-        if deleted_count > 0:
-            logger.info(f"Cleaned up {deleted_count} old energy mix records")
-        
-        return deleted_count
-    except Exception as e:
-        logger.error(f"Failed to clean up old energy mix records: {e}")
-        return 0
+    """Disabled - retain all energy mix data."""
+    return 0
 
 
 def get_energy_mix_summary(start_date: str, end_date: str) -> Dict:

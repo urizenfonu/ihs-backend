@@ -10,6 +10,11 @@ logger = logging.getLogger(__name__)
 CLEANUP_FLAG_KEY = "energy_mix_cleanup_v2_completed"
 
 def cleanup_energy_mix_data():
+    """Disabled - retain all energy mix data."""
+    logger.info("Energy mix cleanup disabled - retaining all historical data")
+    return True
+
+def _cleanup_energy_mix_data_disabled():
     """Clean up corrupted energy mix data from database (runs once)."""
     db = get_database()
 
