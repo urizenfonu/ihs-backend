@@ -50,7 +50,6 @@ def recalculate_trigger_counts():
             updated += 1
 
     conn.commit()
-    conn.close()
 
     print(f"\n{'='*70}")
     print(f"✅ Recalculation complete!")
