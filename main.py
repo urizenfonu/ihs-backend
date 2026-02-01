@@ -87,6 +87,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"[Lifespan] ⚠️  Failed to run energy mix backfill: {e}", flush=True)
 
+    # Seed missing energy mix data for 24h chart coverage
+    try:
+        from scripts.seed_energy_mix_24h import seed_missing_energy_mix_data
+        seeded = seed_missing_energy_mix_data()
+        if seeded > 0:
+            print(f"[Lifespan] ✅ Seeded {seeded} missing energy mix hours", flush=True)
+    except Exception as e:
+        print(f"[Lifespan] ⚠️  Failed to seed energy mix data: {e}", flush=True)
+
     # Start schedulers
     print("[Lifespan] Initializing schedulers...", flush=True)
 
