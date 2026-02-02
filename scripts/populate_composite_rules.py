@@ -79,16 +79,16 @@ COMPOSITE_RULES = [
         'category': 'Grid ACEM',
         'parameter': 'Grid Available and on Load',
         'conditions': [
-            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'},
-            {'parameter': 'current_sum', 'operator': '>', 'value': 3, 'unit': 'A'}
+            {'parameter': 'current_sum', 'operator': '>', 'value': 3, 'unit': 'A'},
+            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'}
         ]
     },
     {
         'category': 'Grid ACEM',
         'parameter': 'Grid Available But Not on Load',
         'conditions': [
-            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'},
-            {'parameter': 'current_sum', 'operator': '<', 'value': 3, 'unit': 'A'}
+            {'parameter': 'current_sum', 'operator': '<', 'value': 3, 'unit': 'A'},
+            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'}
         ]
     },
     {
@@ -143,16 +143,16 @@ COMPOSITE_RULES = [
         'category': 'Gen ACEM',
         'parameter': 'Gen on Load',
         'conditions': [
-            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'},
-            {'parameter': 'current_sum', 'operator': '>', 'value': 3, 'unit': 'A'}
+            {'parameter': 'current_sum', 'operator': '>', 'value': 3, 'unit': 'A'},
+            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'}
         ]
     },
     {
         'category': 'Gen ACEM',
         'parameter': 'Gen On but Not on Load',
         'conditions': [
-            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'},
-            {'parameter': 'current_sum', 'operator': '<', 'value': 3, 'unit': 'A'}
+            {'parameter': 'current_sum', 'operator': '<', 'value': 3, 'unit': 'A'},
+            {'parameter': 'voltage', 'operator': '>=', 'value': 174, 'unit': 'V'}
         ]
     },
     {
