@@ -77,7 +77,7 @@ class AlarmMonitor:
                                     site,
                                     reading,
                                     reading_data,
-                                    violation['current_value']
+                                    violation
                                 )
 
                                 if alarm_id:
@@ -140,6 +140,7 @@ class AlarmMonitor:
                 last_condition = None
                 last_threshold_value = None
 
+                last_unit = None
                 for cond in conditions:
                     if not isinstance(cond, dict):
                         continue
@@ -158,6 +159,7 @@ class AlarmMonitor:
                     last_value = value
                     last_condition = op
                     last_threshold_value = threshold_value
+                    last_unit = cond.get("unit")
                     results.append(self._compare(value, op, threshold_value))
 
                 triggered = all(results) if logic == "AND" else any(results)
@@ -166,6 +168,7 @@ class AlarmMonitor:
                         "current_value": last_value,
                         "threshold_value": last_threshold_value,
                         "condition": last_condition,
+                        "unit": last_unit,
                     }
                 return None
 
@@ -181,7 +184,7 @@ class AlarmMonitor:
             return None
 
         if self._compare(value, condition, threshold_value):
-            return {"current_value": value, "threshold_value": threshold_value, "condition": condition}
+            return {"current_value": value, "threshold_value": threshold_value, "condition": condition, "unit": threshold.get("unit")}
         return None
 
     def _compare(self, value: float, condition: str, threshold_value: float) -> bool:
@@ -352,26 +355,23 @@ class AlarmMonitor:
         site: Dict,
         reading: Dict,
         reading_data: Dict,
-        current_value: float
+        violation: Dict
     ) -> Optional[str]:
-        """
-        Create a new alarm in the database.
-        """
         try:
             alarm_id = f"alarm_{secrets.token_hex(4)}"
+            current_value = violation['current_value']
+            unit = violation.get('unit') or threshold.get('unit') or ''
 
-            # Build alarm message
-            message = self._generate_alarm_message(threshold, asset['name'], current_value)
+            message = self._generate_alarm_message(threshold, asset['name'], current_value, unit)
 
             sensor_name = asset.get('name')
             tenant = self._identify_tenant(sensor_name) or self._identify_tenant(site.get('name', ''))
             location = site.get('zone') or site.get('region') or site.get('name')
 
-            # Build details
             details = {
                 'parameter': threshold['parameter'],
-                'currentValue': f"{current_value:.2f}{threshold['unit']}",
-                'threshold': f"{threshold['condition']} {threshold['value']}{threshold['unit']}",
+                'currentValue': f"{current_value:.2f}{unit}",
+                'threshold': f"{violation.get('condition', threshold.get('condition'))} {violation.get('threshold_value', threshold.get('value'))}{unit}",
                 'asset': asset.get('name'),
                 'equipment': asset.get('name'),
                 'sensor': sensor_name,
@@ -407,13 +407,8 @@ class AlarmMonitor:
             print(f"[AlarmMonitor] Failed to create alarm: {str(e)}")
             return None
 
-    def _generate_alarm_message(self, threshold: Dict, asset_name: str, value: float) -> str:
-        """
-        Generate human-readable alarm message.
-        """
-        unit = threshold['unit']
+    def _generate_alarm_message(self, threshold: Dict, asset_name: str, value: float, unit: str) -> str:
         desc = threshold.get('description', threshold['parameter'])
-
         return f"{desc}: {value:.2f}{unit} at {asset_name}"
 
 
