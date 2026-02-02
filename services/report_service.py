@@ -275,16 +275,20 @@ class AlarmSummaryGenerator:
         }
 
     def _calculate_top_sites(self, alarms: List[Dict]) -> List[Dict]:
-        site_counts = defaultdict(lambda: {'total': 0, 'critical': 0})
+        site_counts = defaultdict(lambda: {'total': 0, 'critical': 0, 'warning': 0, 'info': 0})
 
         for alarm in alarms:
             site = alarm.get('site', 'Unknown')
             site_counts[site]['total'] += 1
-            if alarm.get('severity', '').lower() == 'critical':
-                site_counts[site]['critical'] += 1
+            severity = alarm.get('severity', '').lower()
+            if severity in ['critical', 'warning', 'info']:
+                site_counts[site][severity] += 1
 
         top_sites = sorted(
-            [{'site_name': site, 'alarm_count': counts['total'], 'critical_count': counts['critical']}
+            [{'site_name': site, 'alarm_count': counts['total'],
+              'critical_count': counts['critical'],
+              'warning_count': counts['warning'],
+              'info_count': counts['info']}
              for site, counts in site_counts.items()],
             key=lambda x: x['alarm_count'],
             reverse=True

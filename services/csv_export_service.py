@@ -48,8 +48,8 @@ class CSVExportService:
                 site.get('site_name', ''),
                 site.get('alarm_count', 0),
                 site.get('critical_count', 0),
-                0,
-                0
+                site.get('warning_count', 0),
+                site.get('info_count', 0)
             ])
 
         writer.writerow([])
