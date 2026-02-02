@@ -75,17 +75,37 @@ class IHSSyncService:
         zone_name = zone.get('name', 'Unknown') if isinstance(zone, dict) else 'Unknown'
         zone_external_id = zone.get('id') if isinstance(zone, dict) else None
 
+        cluster = ihs_site.get('cluster') if isinstance(ihs_site, dict) else None
+        cluster_name = None
+        state_name = None
+        region_name = None
+
+        if isinstance(cluster, dict):
+            cluster_name = cluster.get('name')
+            state = cluster.get('state') if isinstance(cluster.get('state'), dict) else None
+            if isinstance(state, dict):
+                state_name = state.get('name')
+                region = state.get('region') if isinstance(state.get('region'), dict) else None
+                if isinstance(region, dict):
+                    region_name = region.get('name')
+
         cluster_code = None
         if isinstance(ihs_site, dict):
-            cluster_code = ihs_site.get('cluster_code') or ihs_site.get('clusterCode')
+            cluster_code = (
+                cluster_name
+                or ihs_site.get('cluster_code')
+                or ihs_site.get('clusterCode')
+            )
 
         state = None
         if isinstance(ihs_site, dict):
-            state = ihs_site.get('state') or ihs_site.get('State')
+            state = state_name or ihs_site.get('state') or ihs_site.get('State')
+
+        region = region_name or zone_name
 
         return {
             'name': ihs_site.get('name'),
-            'region': zone_name,
+            'region': region,
             'zone': zone_name,
             'state': state,
             'cluster_code': cluster_code,

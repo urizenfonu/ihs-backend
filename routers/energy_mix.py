@@ -235,21 +235,25 @@ def get_energy_mix(
     if interval != "hourly":
         raise HTTPException(status_code=400, detail="Only interval=hourly is supported")
 
-    # First, try to get historical data from persistent storage
+    # First, try to get historical data from persistent storage (global only)
     hours = int(history_hours) if history_hours else 24
-    historical_data = get_historical_energy_mix(hours)
+    has_scope = bool(region or state or site)
+    historical_data = []
 
-    # If we have historical data and it's not all zeros, return it
-    has_real_data = any(
-        any(val > 0 for val in [item['grid'], item['generator'], item['solar'], item['battery']])
-        for item in historical_data
-    )
+    if not has_scope:
+        historical_data = get_historical_energy_mix(hours)
 
-    if has_real_data:
-        return historical_data
+        # If we have historical data and it's not all zeros, return it
+        has_real_data = any(
+            any(val > 0 for val in [item['grid'], item['generator'], item['solar'], item['battery']])
+            for item in historical_data
+        )
+
+        if has_real_data:
+            return historical_data
 
     # If no historical data or all zeros, fall back to real-time calculation
-    # but also store the results for future requests
+    # but also store the results for future requests (global only)
     db = get_database()
 
     site_ids, _scope = _resolve_site_ids(region=region, state=state, site=site, sample_size=sample_size)
@@ -257,7 +261,21 @@ def get_energy_mix(
 
     if not asset_ids:
         # Return historical data even if it's all zeros if no assets are found
-        return historical_data
+        if not has_scope:
+            return historical_data
+        now = datetime.now()
+        hours_back = int(history_hours) if history_hours else 24
+        hours_list = [now - timedelta(hours=i) for i in range(hours_back - 1, -1, -1)]
+        return [
+            {
+                "time": h.strftime("%H:00"),
+                "grid": 0.0,
+                "generator": 0.0,
+                "solar": 0.0,
+                "battery": 0.0,
+            }
+            for h in hours_list
+        ]
 
     # Pull recent readings for assets, filtered by created_at to avoid scanning historical telemetry.
     readings: List[Dict[str, Any]] = []
@@ -379,13 +397,14 @@ def get_energy_mix(
         }
         result.append(energy_mix_entry)
 
-        # Store this hour's data in persistent storage for future requests
-        hour_energy_mix = {
-            'grid': energy_mix_entry['grid'],
-            'generator': energy_mix_entry['generator'],
-            'solar': energy_mix_entry['solar'],
-            'battery': energy_mix_entry['battery']
-        }
-        store_energy_mix_snapshot(key, hour_energy_mix, len(site_ids))
+        # Store this hour's data in persistent storage for future requests (global only)
+        if not has_scope:
+            hour_energy_mix = {
+                'grid': energy_mix_entry['grid'],
+                'generator': energy_mix_entry['generator'],
+                'solar': energy_mix_entry['solar'],
+                'battery': energy_mix_entry['battery']
+            }
+            store_energy_mix_snapshot(key, hour_energy_mix, len(site_ids))
 
     return result

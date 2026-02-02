@@ -89,7 +89,8 @@ def get_cached_sites_with_assets() -> List[Dict]:
 def to_sites_endpoint_payload(cached_sites: List[Dict]) -> List[Dict]:
     payload: List[Dict] = []
     for site in cached_sites:
-        zone_name = site.get("zone") or site.get("region") or "Unknown"
+        zone_name = site.get("zone") or "Unknown"
+        region_name = site.get("region") or zone_name
         assets_raw = site.get("assets", []) if isinstance(site.get("assets"), list) else []
 
         assets: List[Dict] = []
@@ -115,8 +116,10 @@ def to_sites_endpoint_payload(cached_sites: List[Dict]) -> List[Dict]:
             {
                 "id": site.get("external_id") or site.get("id"),
                 "name": site.get("name"),
-                "region": zone_name,
+                "region": region_name,
                 "zone": zone_name,
+                "state": site.get("state"),
+                "cluster_code": site.get("cluster_code"),
                 "asset_count": len(assets),
                 "assets": assets,
             }

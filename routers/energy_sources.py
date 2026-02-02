@@ -286,14 +286,16 @@ def transform_site(site: dict, assets: list) -> dict:
         "name": zone_str,
     }
 
+    state_value = site.get('state') or site.get('region') or zone_str
+
     return {
         **site,
         'zone': zone_obj,
         'asset_count': len(assets),
         'assets': [_attach_tenant_channels(asset) for asset in assets],
-        # IoT API sites do not currently include state/cluster_code; use zone as a safe fallback.
-        'cluster_code': site.get('cluster_code') or zone_str,
-        'state': site.get('state') or zone_str,
+        'region': site.get('region') or zone_str,
+        'cluster_code': site.get('cluster_code'),
+        'state': state_value,
     }
 
 @router.get("/energy-sources-with-alarms")
@@ -350,11 +352,14 @@ def get_energy_sources_with_alarms(history_hours: int = 0, include_empty: bool =
         if (not include_empty) and (not site_assets) and (site.get("name") not in alarm_sites):
             continue
 
+        region_name = site.get("region") or zone_name
+
         sites.append(
             {
                 "id": site.get("external_id") or site.get("id"),
                 "name": site.get("name"),
                 "zone": zone_name,
+                "region": region_name,
                 "zone_external_id": site.get("zone_external_id"),
                 "state": site.get("state"),
                 "cluster_code": site.get("cluster_code"),
