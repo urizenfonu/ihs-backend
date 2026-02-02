@@ -141,11 +141,12 @@ class AlarmMonitor:
                 last_threshold_value = None
 
                 last_unit = None
+                last_parameter = None
                 for cond in conditions:
                     if not isinstance(cond, dict):
                         continue
-                    parameter = cond.get("parameter") or threshold.get("parameter") or ""
-                    value = self._extract_value(parameter, reading_data)
+                    param = cond.get("parameter") or threshold.get("parameter") or ""
+                    value = self._extract_value(param, reading_data)
                     if value is None:
                         results.append(False)
                         continue
@@ -160,6 +161,7 @@ class AlarmMonitor:
                     last_condition = op
                     last_threshold_value = threshold_value
                     last_unit = cond.get("unit")
+                    last_parameter = param
                     results.append(self._compare(value, op, threshold_value))
 
                 triggered = all(results) if logic == "AND" else any(results)
@@ -169,6 +171,7 @@ class AlarmMonitor:
                         "threshold_value": last_threshold_value,
                         "condition": last_condition,
                         "unit": last_unit,
+                        "parameter": last_parameter,
                     }
                 return None
 
@@ -184,7 +187,7 @@ class AlarmMonitor:
             return None
 
         if self._compare(value, condition, threshold_value):
-            return {"current_value": value, "threshold_value": threshold_value, "condition": condition, "unit": threshold.get("unit")}
+            return {"current_value": value, "threshold_value": threshold_value, "condition": condition, "unit": threshold.get("unit"), "parameter": parameter}
         return None
 
     def _compare(self, value: float, condition: str, threshold_value: float) -> bool:
@@ -369,7 +372,7 @@ class AlarmMonitor:
             location = site.get('zone') or site.get('region') or site.get('name')
 
             details = {
-                'parameter': threshold['parameter'],
+                'parameter': violation.get('parameter') or threshold.get('parameter'),
                 'currentValue': f"{current_value:.2f}{unit}",
                 'threshold': f"{violation.get('condition', threshold.get('condition'))} {violation.get('threshold_value', threshold.get('value'))}{unit}",
                 'asset': asset.get('name'),
