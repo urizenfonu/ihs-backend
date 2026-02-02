@@ -31,6 +31,28 @@ def sync_rules_to_thresholds():
         deprecated_ids,
     )
 
+    # Delete legacy threshold_* entries that duplicate composite rules (broken values)
+    cursor.execute("""
+        DELETE FROM thresholds
+        WHERE id LIKE 'threshold_%'
+        AND description IN (SELECT name FROM composite_rules)
+    """)
+    deleted_legacy = cursor.rowcount
+    if deleted_legacy:
+        print(f"🗑️  Deleted {deleted_legacy} legacy threshold_* entries conflicting with composite rules")
+
+    # Auto-resolve alarms from deleted legacy thresholds (keep history)
+    cursor.execute("""
+        UPDATE alarms
+        SET status = 'resolved'
+        WHERE threshold_id LIKE 'threshold_%'
+        AND status = 'active'
+        AND threshold_id NOT IN (SELECT id FROM thresholds)
+    """)
+    resolved_alarms = cursor.rowcount
+    if resolved_alarms:
+        print(f"✅ Auto-resolved {resolved_alarms} alarms from deleted legacy thresholds")
+
     created = 0
 
     for rule in rules:
