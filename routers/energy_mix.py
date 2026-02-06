@@ -9,6 +9,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 from fastapi import APIRouter, HTTPException, Query
 
 from db.client import get_database
+from db.repositories.reading_repository import ReadingRepository
 from services.energy_mix_persistence import (
     initialize_energy_mix_table,
     store_energy_mix_snapshot,
@@ -218,6 +219,47 @@ def _reading_time(reading: Dict[str, Any], data: Dict[str, Any]) -> Optional[dat
     return _parse_datetime(data.get("date"))
 
 
+def _current_hour_from_latest(asset_ids: List[int]) -> Bucket:
+    """Build a Bucket from the latest reading per asset (real-time snapshot)."""
+    repo = ReadingRepository()
+    bucket = Bucket()
+    for chunk in _chunks(asset_ids, _MAX_SQL_VARS):
+        for r in repo.get_latest_by_asset_ids(chunk):
+            raw = r.get("data")
+            try:
+                data = json.loads(raw) if isinstance(raw, str) else (raw or {})
+            except Exception:
+                continue
+            if not isinstance(data, dict):
+                continue
+            rtype = str(r.get("reading_type") or "").upper()
+            if rtype == "AC_METER":
+                p = _pick(data, [
+                    "total_active_power", "total_power_kw",
+                    "Total_Active_Power (kW)", "Total Active Power (kW)",
+                    "Total_Active_Power (kw)",
+                ])
+                bucket.grid += max(0.0, _sanitize_power_kw(p, max_kw=5_000.0))
+            elif rtype == "GENERATOR":
+                p = _pick(data, [
+                    "power_kw", "total_active_power", "total_power_kw",
+                    "Gen_Total_Power (KW)", "Gen_Total_Power",
+                ])
+                bucket.generator += max(0.0, _sanitize_power_kw(p, max_kw=2_000.0))
+            elif rtype == "DC_METER":
+                batt_w = _to_float(_pick(data, [
+                    "Power1", "Power1 (Watt)", "battery_power",
+                    "Battery_Power", "p1_batt", "p1",
+                ]), 0.0)
+                solar_w = _to_float(_pick(data, [
+                    "Power2", "Power2 (Watt)", "solar_power",
+                    "Solar_Power", "p2_solar_y2", "p2",
+                ]), 0.0)
+                bucket.battery += max(0.0, _sanitize_power_kw(batt_w / 1000.0, max_kw=5_000.0))
+                bucket.solar += max(0.0, _sanitize_power_kw(solar_w / 1000.0, max_kw=5_000.0))
+    return bucket
+
+
 @router.get("/energy-mix")
 def get_energy_mix(
     interval: str = Query("hourly"),
@@ -250,6 +292,21 @@ def get_energy_mix(
         )
 
         if has_real_data:
+            try:
+                s_ids, _ = _resolve_site_ids(region=None, state=None, site=None, sample_size=sample_size)
+                a_ids = _asset_ids_for_sites(s_ids)
+                if a_ids and historical_data:
+                    live = _current_hour_from_latest(a_ids)
+                    historical_data[-1] = {
+                        **historical_data[-1],
+                        "grid": round(live.grid, 2),
+                        "generator": round(live.generator, 2),
+                        "solar": round(live.solar, 2),
+                        "battery": round(live.battery, 2),
+                        "is_live": True,
+                    }
+            except Exception:
+                pass
             return historical_data
 
     # If no historical data or all zeros, fall back to real-time calculation
@@ -406,5 +463,16 @@ def get_energy_mix(
                 'battery': energy_mix_entry['battery']
             }
             store_energy_mix_snapshot(key, hour_energy_mix, len(site_ids))
+
+    if result:
+        live = _current_hour_from_latest(asset_ids)
+        result[-1] = {
+            **result[-1],
+            "grid": round(live.grid, 2),
+            "generator": round(live.generator, 2),
+            "solar": round(live.solar, 2),
+            "battery": round(live.battery, 2),
+            "is_live": True,
+        }
 
     return result
