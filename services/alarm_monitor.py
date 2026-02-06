@@ -31,6 +31,14 @@ class AlarmMonitor:
         try:
             print(f"[AlarmMonitor] Starting evaluation at {datetime.now().isoformat()}")
 
+            try:
+                from services.ihs_sync_service import get_ihs_sync_service
+                sync_service = get_ihs_sync_service()
+                result = sync_service.sync_readings_only()
+                print(f"[AlarmMonitor] Readings sync: {result}")
+            except Exception as e:
+                print(f"[AlarmMonitor] Readings sync failed, evaluating stale data: {e}")
+
             # Get enabled thresholds
             thresholds = self.threshold_repo.get_enabled()
             if not thresholds:

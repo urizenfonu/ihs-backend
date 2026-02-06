@@ -310,6 +310,45 @@ class IHSSyncService:
             self._sync_lock.release()
 
 
+    def sync_readings_only(self) -> Dict:
+        if not self._sync_lock.acquire(blocking=False):
+            logger.info("IHS sync lock held; skipping readings-only sync")
+            return {'readings': 0, 'skipped': True}
+
+        try:
+            assets = self.asset_repo.get_all()
+            synced = 0
+
+            for asset in assets:
+                external_id = asset.get('external_id')
+                if not external_id:
+                    continue
+                try:
+                    latest_reading = self.api_client.get_latest_asset_reading(external_id)
+                    if not latest_reading:
+                        continue
+                    timestamp = (
+                        latest_reading.get('timestamp')
+                        or latest_reading.get('date')
+                        or latest_reading.get('created_at')
+                        or latest_reading.get('time')
+                    )
+                    self.reading_repo.create({
+                        'asset_id': asset['id'],
+                        'reading_type': asset.get('type', 'UNKNOWN'),
+                        'timestamp': timestamp,
+                        'data': json.dumps(latest_reading),
+                    })
+                    synced += 1
+                except Exception as e:
+                    logger.warning(f"Failed to fetch reading for asset {external_id}: {e}")
+
+            logger.info(f"Readings-only sync complete: {synced}/{len(assets)} assets")
+            return {'readings': synced}
+        finally:
+            self._sync_lock.release()
+
+
 # Singleton instance
 _sync_service = None
 
